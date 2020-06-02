@@ -27,14 +27,37 @@ const IndexPage = () => {
 
     try {
       response = await axios.get('https://corona.lmao.ninja/v2/countries');
-    } catch(e) {
+    } catch (e) {
       console.log(`Failed to fetch countries: ${e.message}`, e);
       return;
     }
 
     const { data = [] } = response;
     console.log(data)
+    const hasData = Array.isArray(data) && data.length > 0;
+
+    if (!hasData) return;
+
+    const geoJson = {
+      type: 'FeatureCollection',
+      features: data.map((country = {}) => {
+        const { countryInfo = {} } = country;
+        const { lat, long: lng } = countryInfo;
+        return {
+          type: 'Feature',
+          properties: {
+            ...country,
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [lng, lat]
+          }
+        }
+      })
+    }
+    console.log(geoJson)
   }
+  
 
   const mapSettings = {
     center: CENTER,
@@ -50,7 +73,7 @@ const IndexPage = () => {
       </Helmet>
 
       <Map {...mapSettings}>
-       
+
       </Map>
 
       <Container type="content" className="text-center home-start">
